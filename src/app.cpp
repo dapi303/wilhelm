@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #include "const.h"
+#include "exit_codes.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
@@ -72,7 +73,7 @@ void App::clearObjects() {
 int App::initVideo(int width, int height) {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     SDL_Log("SDL init failed %s\n", SDL_GetError());
-    return 1;
+    return ERROR_INIT_SDL;
   }
 
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -83,24 +84,24 @@ int App::initVideo(int width, int height) {
                                   SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
   if (this->window == NULL) {
     SDL_Log("Create window failed %s\n", SDL_GetError());
-    return 2;
+    return ERROR_CREATE_WINDOW;
   }
 
   SDL_GLContext context = SDL_GL_CreateContext(this->window);
   if (context == NULL) {
     SDL_Log("Create context failed\n");
-    return 3;
+    return ERROR_CREATE_CONTEXT;
   }
 
   int initGlStatus = initGL();
   if (initGlStatus != 0) {
     SDL_Log("init gl failed\n");
-    return 5;
+    return ERROR_INIT_GL;
   }
 
   if (glewInit() != GLEW_OK) {
     SDL_Log("glew init failed\n");
-    return 6;
+    return ERROR_INIT_GLEW;
   }
 
   return 0;
@@ -125,13 +126,13 @@ int App::initGL() {
   error = glGetError();
   if (error != GL_NO_ERROR) {
     SDL_Log("Init OpenGl failed %s\n", gluErrorString(error));
-    return 11;
+    return ERROR_INIT_OPENGL;
   }
 
   error = glGetError();
   if (error != GL_NO_ERROR) {
     SDL_Log("Init OpenGl failed %s\n", gluErrorString(error));
-    return 12;
+    return ERROR_INIT_OPENGL;
   }
 
   return 0;
