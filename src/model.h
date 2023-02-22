@@ -17,9 +17,6 @@ public:
   bool load(const char *path, const char *texturePath);
   void render();
   float scale = CONST::initialObjectScale;
-  bool test = true;
-
-  float rotate = 0.0f;
 
 private:
   void clear();

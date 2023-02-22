@@ -16,8 +16,6 @@ Model::~Model() {
 void Model::render() {
   if (this->modelData) {
     glScalef(this->scale, this->scale, this->scale);
-    glRotatef(this->rotate, 1, 1, 1);
-    this->rotate += 0.06f;
     std::vector<std::shared_ptr<Vertex3>>::iterator vIt;
     std::vector<std::shared_ptr<Vertex2>>::iterator vtIt;
     glEnable(GL_TEXTURE_2D);
@@ -38,7 +36,6 @@ void Model::render() {
       }
       glEnd();
     }
-    this->test = false;
     glDisable(GL_TEXTURE_2D);
   }
 }
