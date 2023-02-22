@@ -110,14 +110,13 @@ int App::initGL() {
   bool success = true;
   GLenum error = GL_NO_ERROR;
 
-  // Initialize Projection Matrix
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
 
   error = glGetError();
   if (error != GL_NO_ERROR) {
     SDL_Log("Init OpenGl failed %s\n", gluErrorString(error));
-    return 10;
+    return ERROR_INIT_OPENGL;
   }
 
   glMatrixMode(GL_MODELVIEW);
@@ -376,12 +375,11 @@ void App::click() {
 }
 
 void App::render() {
-  // SDL_Log("render\n");
-  glClearColor(CLEAR_COLOR);
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glLoadIdentity();
-  glMatrixMode(GL_PROJECTION);
+  glMatrixMode(GL_MODELVIEW);
+
   gluPerspective(CONST::camera::fovy, this->width / this->height,
                  CONST::camera::near, CONST::camera::far);
   gluLookAt(this->player.x, CONST::camera::eyeY,
@@ -389,10 +387,8 @@ void App::render() {
             this->player.z, CONST::camera::upX, CONST::camera::upY,
             CONST::camera::upZ);
 
+  glEnable(GL_DEPTH_TEST);
   this->renderWorld();
-  // if (this->enableObjects) {
-  // this->renderObjects();
-  //}
 };
 
 void App::renderObjects() {
