@@ -25,13 +25,15 @@ void Fps::frameStart() {
   }
 }
 
+#include <iostream>
+
 void Fps::frameEnd() {
   Uint64 currentFrameEnd = SDL_GetPerformanceCounter();
   float elapsedMS = (currentFrameEnd - currentFrameStart) /
                     (float)SDL_GetPerformanceFrequency() * 1000.0f;
 
   if (elapsedMS < minFrameTimeMs) {
-    SDL_Delay(floor(minFrameTimeMs - elapsedMS));
+    SDL_Delay(minFrameTimeMs - elapsedMS);
   }
 }
 

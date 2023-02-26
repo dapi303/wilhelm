@@ -5,6 +5,7 @@
 
 int Text::init(const AppWindow &appWindow) {
   fontChars = loadFont();
+  lineHeight = 0;
   for (auto it = fontChars.begin(); it != fontChars.end(); ++it) {
     if (it->second.Size.y > lineHeight) {
       lineHeight = it->second.Size.y;
@@ -32,19 +33,27 @@ int Text::init(const AppWindow &appWindow) {
   return 0;
 }
 
-void Text::render(std::string text, float x, float y, float scale,
-                  glm::vec3 color) {
-  doRender(text, x, y, scale, color, false);
-}
-
 void Text::renderTop(std::string text, float x, float y, float scale,
                      glm::vec3 color) {
-
-  doRender(text, x, y, scale, color, true);
+  render(text, x, y - lineHeight * scale, scale, color);
 }
 
-void Text::doRender(std::string text, float x, float y, float scale,
-                    glm::vec3 color, bool shiftDown) {
+void Text::renderTop(std::vector<std::string> lines, float x, float y,
+                     float scale, glm::vec3 color) {
+  render(lines, x, y - lineHeight * scale, scale, color);
+}
+
+void Text::render(std::vector<std::string> lines, float x, float y, float scale,
+                  glm::vec3 color) {
+
+  for (const std::string &text : lines) {
+    render(text, x, y, scale, color);
+    y -= lineHeight * scale;
+  }
+}
+
+void Text::render(std::string text, float x, float y, float scale,
+                  glm::vec3 color) {
   shader->use();
   glUniform3f(glGetUniformLocation(shader->ID, "textColor"), color.x, color.y,
               color.z);
@@ -61,9 +70,6 @@ void Text::doRender(std::string text, float x, float y, float scale,
     float w = ch.Size.x * scale;
     float h = ch.Size.y * scale;
 
-    if (shiftDown) {
-      ypos -= lineHeight * scale;
-    }
     float vertices[6][4] = {
         {xpos, ypos + h, 0.0f, 0.0f},    {xpos, ypos, 0.0f, 1.0f},
         {xpos + w, ypos, 1.0f, 1.0f},
