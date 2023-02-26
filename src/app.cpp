@@ -14,7 +14,7 @@
 #define MOUSE_LEFT 1
 #define MOUSE_RIGHT 3
 
-App::App() : object(nullptr){};
+App::App() : object(nullptr), hud(fps){};
 
 App::~App() {
   SDL_DestroyWindow(window);
@@ -207,15 +207,10 @@ void App::events() {
 }
 
 void App::loop() {
-  Uint32 lastUpdate = SDL_GetTicks();
+  fps.init();
   while (false == quit) {
-
-    Uint32 currentUpdate = SDL_GetTicks();
-    Uint64 currentFrameStart = SDL_GetPerformanceCounter();
-
-    float deltaTime = (currentUpdate - lastUpdate) / 1000.0f;
-    lastUpdate = currentUpdate;
-    updateCreature(player, deltaTime);
+    fps.frameStart();
+    updateCreature(player, fps.getDeltaTime());
 
     glClearColor(CLEAR_COLOR);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -230,13 +225,7 @@ void App::loop() {
 
     SDL_Delay(5);
 
-    Uint64 currentFrameEnd = SDL_GetPerformanceCounter();
-    float elapsedMS = (currentFrameEnd - currentFrameStart) /
-                      (float)SDL_GetPerformanceFrequency() * 1000.0f;
-
-    if (elapsedMS < 16.666f) {
-      SDL_Delay(floor(16.666f - elapsedMS));
-    }
+    fps.frameEnd();
   }
 }
 

@@ -6,6 +6,7 @@
 namespace CONST {
 const float minDistanceToMove = 0.003f;
 const float initialObjectScale = 0.002f;
+const int fpsUpdateDelaysMs = 300;
 
 namespace camera {
 const float fovy = 45.0f;

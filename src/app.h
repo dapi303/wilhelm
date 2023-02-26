@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 
 #include <vector>
+#include "fps.h"
 #include "glm/glm.hpp"
 
 #include "font.h"
@@ -50,6 +51,7 @@ private:
 
   HUD hud;
   AppWindow appWindow;
+  Fps fps;
 };
 
 #endif
