@@ -18,20 +18,21 @@ Characters loadFont() {
 
   error = FT_Init_FreeType(&ft);
   if (error != 0) {
-    // return error;
+    SDL_LogError(0, "loadFont, failed to init freetype");
+    return characters;
   }
 
   error = FT_New_Face(ft, "media/font.ttf", 0, &face);
   if (error != 0) {
-    SDL_Log("loadFont, failed to create face");
-    // return error;
+    SDL_LogError(0, "loadFont, failed to create face");
+    return characters;
   }
 
   FT_Set_Pixel_Sizes(face, 0, 48);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   for (Uint32 c = 0; c < 128; ++c) {
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-      SDL_Log("loadFont, failed to load glyph %c\n", c);
+      SDL_LogError(0, "loadFont, failed to load glyph %c\n", c);
       continue;
     }
 
@@ -45,7 +46,7 @@ Characters loadFont() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // now store character for later use
+
     Character character = {
         texture,
         glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
@@ -59,5 +60,4 @@ Characters loadFont() {
   FT_Done_Face(face);
   FT_Done_FreeType(ft);
   return characters;
-  // return 0;
 }
