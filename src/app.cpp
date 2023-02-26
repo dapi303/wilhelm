@@ -113,7 +113,7 @@ int App::init(int width, int height) {
     player.setPosition(0, 0, 0);
     quit = false;
 
-    Model *model = new Model();
+    std::shared_ptr<Model> model(new Model());
     bool result =
         model->load("./media/medivalhouse/Medieval_House.obj",
                     "./media/medivalhouse/Texture/Medieval_House_Diff.png");
@@ -121,18 +121,14 @@ int App::init(int width, int height) {
     if (result) {
       models.push_back(model);
       createObject({0, 0, 0})->model = model;
-    } else {
-      delete model;
     }
 
-    model = new Model();
-    result = model->load("./media/player.obj", "");
+    std::shared_ptr<Model> playerModel(new Model());
+    result = playerModel->load("./media/player.obj", "");
     if (result) {
-      models.push_back(model);
-      player.model = model;
+      models.push_back(playerModel);
+      player.model = playerModel;
       player.model->scale = 0.05f;
-    } else {
-      delete model;
     }
 
     SDL_Log("init done\n");
@@ -303,6 +299,8 @@ void App::renderObjects() {
 
   glPushMatrix();
   glTranslatef(player.x, player.y, player.z);
-  player.model->render();
+  if (player.model) {
+    player.model->render();
+  }
   glPopMatrix();
 }

@@ -10,21 +10,22 @@
 #include "loader/obj.h"
 
 Model::~Model() {
-  SDL_Log("remove model %s\n", this->name.c_str());
-  this->clear();
+  SDL_Log("remove model %s\n", name.c_str());
+  clear();
+  SDL_Log("remove model done\n");
 }
 
 void Model::render() {
   // glPushMatrix();
   // glLoadIdentity();
-  if (this->modelData) {
-    glScalef(this->scale, this->scale, this->scale);
+  if (modelData) {
+    glScalef(scale, scale, scale);
     std::vector<std::shared_ptr<Vertex3>>::iterator vIt;
     std::vector<std::shared_ptr<Vertex2>>::iterator vtIt;
     glEnable(GL_TEXTURE_2D);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, this->modelData->textureId);
-    for (std::shared_ptr<Face> face : this->modelData->face) {
+    glBindTexture(GL_TEXTURE_2D, modelData->textureId);
+    for (std::shared_ptr<Face> face : modelData->face) {
       vIt = face->vertex.begin();
       vtIt = face->vertexTexture.begin();
       glBegin(GL_POLYGON);
@@ -45,20 +46,24 @@ void Model::render() {
 
 bool Model::load(const char *path, const char *texturePath) {
   bool result = false;
-  this->name = path;
-  SDL_Log("loading %s\n", path);
-  this->modelData = loadObj(path, texturePath);
-  SDL_Log("load result: %d\n", this->modelData != nullptr);
-  if (this->modelData) {
-    SDL_Log("v:%d vt:%d f:%d\n", this->modelData->vertex.size(),
-            this->modelData->vertexTexture.size(),
-            this->modelData->face.size());
+  SDL_Log("Model->loading %s\n", path);
+  if (modelData != nullptr) {
+    SDL_LogError(0, "load model twice");
+    return false;
+  }
+
+  name = path;
+  modelData = loadObj(path, texturePath);
+  SDL_Log("load result: %d\n", modelData != nullptr);
+  if (modelData) {
+    SDL_Log("v:%d vt:%d f:%d\n", modelData->vertex.size(),
+            modelData->vertexTexture.size(), modelData->face.size());
 
     std::vector<std::shared_ptr<Vertex3>>::reverse_iterator vIt;
     std::vector<std::shared_ptr<Vertex2>>::reverse_iterator vtIt;
   }
 
-  return this->modelData != nullptr;
+  return modelData != nullptr;
 }
 
 void Model::clear() {}

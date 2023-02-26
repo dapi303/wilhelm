@@ -42,7 +42,7 @@ private:
   Object *object = nullptr;
   Creature player;
 
-  std::vector<Model *> models;
+  std::vector<std::shared_ptr<Model>> models;
 
   Position clickPos;
   Position clickPos2;

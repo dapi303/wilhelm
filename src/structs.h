@@ -47,7 +47,7 @@ struct Position {
 struct Object : Position {
   Object *next = nullptr;
   float rotation = 0;
-  Model *model = nullptr;
+  std::shared_ptr<Model> model;
 };
 
 struct Target : Position {
