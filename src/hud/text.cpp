@@ -5,6 +5,11 @@
 
 int Text::init(const AppWindow &appWindow) {
   fontChars = loadFont();
+  for (auto it = fontChars.begin(); it != fontChars.end(); ++it) {
+    if (it->second.Size.y > lineHeight) {
+      lineHeight = it->second.Size.y;
+    }
+  }
   shader = new Shader("shaders/font.vert", "shaders/font.frag");
   shader->use();
   glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(appWindow.width),
@@ -29,6 +34,17 @@ int Text::init(const AppWindow &appWindow) {
 
 void Text::render(std::string text, float x, float y, float scale,
                   glm::vec3 color) {
+  doRender(text, x, y, scale, color, false);
+}
+
+void Text::renderTop(std::string text, float x, float y, float scale,
+                     glm::vec3 color) {
+
+  doRender(text, x, y, scale, color, true);
+}
+
+void Text::doRender(std::string text, float x, float y, float scale,
+                    glm::vec3 color, bool shiftDown) {
   shader->use();
   glUniform3f(glGetUniformLocation(shader->ID, "textColor"), color.x, color.y,
               color.z);
@@ -44,6 +60,10 @@ void Text::render(std::string text, float x, float y, float scale,
 
     float w = ch.Size.x * scale;
     float h = ch.Size.y * scale;
+
+    if (shiftDown) {
+      ypos -= lineHeight * scale;
+    }
     float vertices[6][4] = {
         {xpos, ypos + h, 0.0f, 0.0f},    {xpos, ypos, 0.0f, 1.0f},
         {xpos + w, ypos, 1.0f, 1.0f},

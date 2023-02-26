@@ -14,7 +14,7 @@
 #define MOUSE_LEFT 1
 #define MOUSE_RIGHT 3
 
-App::App() : object(nullptr), hud(fps){};
+App::App() : object(nullptr), hud(fps, appWindow){};
 
 App::~App() {
   SDL_DestroyWindow(window);
@@ -107,7 +107,7 @@ int App::init(int width, int height) {
   SDL_Log("init start\n");
   int errorCode = initVideo(width, height);
 
-  hud.init(appWindow);
+  hud.init();
 
   if (errorCode == 0) {
     player.setPosition(0, 0, 0);

@@ -7,13 +7,14 @@
 
 class HUD {
 public:
-  HUD(Fps &fps);
-  int init(const AppWindow &appWindow);
+  HUD(Fps &fps, AppWindow &appWindow);
+  int init();
   void render();
 
 private:
   Fps &fps;
   Text text;
+  AppWindow &appWindow;
 };
 
 #endif

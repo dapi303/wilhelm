@@ -27,12 +27,6 @@ Characters loadFont() {
     // return error;
   }
 
-  // error = FT_Set_Char_Size(face, 50 * 64, 0, 100, 0);
-  // if (error != 0) {
-  // SDL_Log("loadFont, failed to set char size");
-  //// return error;
-  //}
-
   FT_Set_Pixel_Sizes(face, 0, 48);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   for (Uint32 c = 0; c < 128; ++c) {

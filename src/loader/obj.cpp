@@ -1,7 +1,5 @@
 #include "./obj.h"
 
-#include <iostream>
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <GL/glew.h>
 #include <SDL2/SDL_image.h>
