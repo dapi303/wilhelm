@@ -1,5 +1,8 @@
 #include "hud.h"
 
+#include <sstream>
+#include <iomanip>
+
 HUD::HUD(Fps &fps, AppWindow &appWindow, Creature &player)
     : appWindow(appWindow), fps(fps), player(player) {}
 
@@ -19,20 +22,28 @@ void HUD::render() {
   glDisable(GL_BLEND);
 }
 
+std::string getStr(std::stringstream &ss, float f) {
+  ss.str("");
+  ss << std::fixed << std::setprecision(3) << f;
+  return ss.str();
+}
+
 void HUD::renderDebug() {
+  std::stringstream stream;
+
   std::vector<std::string> lines = {
       "FPS:" + std::to_string((int)fps.getFps()),
       "",
       "player:",
-      "X: " + std::to_string(int(player.x * 100)),
-      "Y: " + std::to_string(int(player.y * 100)),
-      "Z: " + std::to_string(int(player.z * 100)),
+      "X: " + getStr(stream, player.x),
+      "Y: " + getStr(stream, player.y),
+      "Z: " + getStr(stream, player.z),
       "",
       "target",
       "active: " + std::to_string(player.target.active),
-      "X: " + std::to_string(int(player.target.x * 100)),
-      "Y: " + std::to_string(int(player.target.y * 100)),
-      "Z: " + std::to_string(int(player.target.z * 100)),
+      "X: " + getStr(stream, player.target.x),
+      "Y: " + getStr(stream, player.target.y),
+      "Z: " + getStr(stream, player.target.z),
   };
 
   text.renderTop(lines, 0.0f, appWindow.height, 0.7f);
