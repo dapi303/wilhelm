@@ -130,7 +130,6 @@ std::shared_ptr<ModelData> loadObj(const std::string &path,
 
     glGenTextures(1, &model->textureId);
     glBindTexture(GL_TEXTURE_2D, model->textureId);
-    glEnable(GL_CULL_FACE);
     int width, height, nrChannels;
 
     stbi_set_flip_vertically_on_load(true);

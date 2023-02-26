@@ -1,1 +1,1 @@
-vcpkg install sdl2 sdl2-image glew glm mesa
+vcpkg install sdl2 sdl2-image glew glm freetype glad
