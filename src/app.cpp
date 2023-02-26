@@ -14,7 +14,7 @@
 #define MOUSE_LEFT 1
 #define MOUSE_RIGHT 3
 
-App::App() : object(nullptr), hud(fps, appWindow){};
+App::App() : object(nullptr), hud(fps, appWindow, player){};
 
 App::~App() {
   SDL_DestroyWindow(window);
@@ -215,10 +215,10 @@ void App::loop() {
     glClearColor(CLEAR_COLOR);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    events();
-
     glUseProgram(0);
-    renderScene();
+    prepareSceneView();
+    events();
+    renderObjects();
     hud.render();
 
     SDL_GL_SwapWindow(window);
@@ -264,7 +264,7 @@ void App::click() {
   player.moveTo(x, 0, z);
 }
 
-void App::renderScene() {
+void App::prepareSceneView() {
   glUseProgram(0);
 
   glEnable(GL_DEPTH_TEST);
@@ -276,8 +276,6 @@ void App::renderScene() {
   gluLookAt(player.x, CONST::camera::eyeY, player.z + CONST::camera::eyeZ,
             player.x, 0, player.z, CONST::camera::upX, CONST::camera::upY,
             CONST::camera::upZ);
-
-  renderObjects();
 };
 
 void App::renderObjects() {

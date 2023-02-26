@@ -27,7 +27,7 @@ private:
 
   void clearObjects();
 
-  void renderScene();
+  void prepareSceneView();
   void renderObjects();
 
   Object *createObject(Position);
