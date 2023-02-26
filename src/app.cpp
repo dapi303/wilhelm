@@ -125,6 +125,16 @@ int App::init(int width, int height) {
       delete model;
     }
 
+    model = new Model();
+    result = model->load("./media/player.obj", "");
+    if (result) {
+      models.push_back(model);
+      player.model = model;
+      player.model->scale = 0.05f;
+    } else {
+      delete model;
+    }
+
     SDL_Log("init done\n");
   }
   return errorCode;
@@ -283,8 +293,16 @@ void App::renderObjects() {
   Object *current = object;
   while (current) {
     if (current->model) {
+      glPushMatrix();
+      glTranslatef(current->x, current->y, current->z);
       current->model->render();
+      glPopMatrix();
     }
     current = current->next;
   }
+
+  glPushMatrix();
+  glTranslatef(player.x, player.y, player.z);
+  player.model->render();
+  glPopMatrix();
 }
