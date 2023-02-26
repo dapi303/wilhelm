@@ -6,6 +6,7 @@
 void Fps::init() {
   lastUpdate = SDL_GetTicks();
   fps = 0.0f;
+  minFrameTimeMs = 1000.0f / CONST::maxFps;
 }
 
 void Fps::frameStart() {
@@ -29,8 +30,8 @@ void Fps::frameEnd() {
   float elapsedMS = (currentFrameEnd - currentFrameStart) /
                     (float)SDL_GetPerformanceFrequency() * 1000.0f;
 
-  if (elapsedMS < 16.666f) {
-    SDL_Delay(floor(16.666f - elapsedMS));
+  if (elapsedMS < minFrameTimeMs) {
+    SDL_Delay(floor(minFrameTimeMs - elapsedMS));
   }
 }
 

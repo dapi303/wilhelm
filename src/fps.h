@@ -17,6 +17,7 @@ private:
   Uint32 lastCounterUpdate;
   float deltaTime;
   float fps;
+  float minFrameTimeMs;
 };
 
 #endif
