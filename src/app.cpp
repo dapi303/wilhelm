@@ -9,56 +9,21 @@
 
 #include "const.h"
 #include "exit_codes.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
 
 #define STEP 0.1f
-#define OBJECT_SIZE 100
-#define OBJECT_HALF_SIZE OBJECT_SIZE / 2
-
-#define PLAYER_SIZE 10
-#define PLAYER_HALF_SIZE PLAYER_SIZE / 2
-
-#define GRID 100
-#define GRID_TILE 0.1f
-
 #define MOUSE_LEFT 1
 #define MOUSE_RIGHT 3
 
-App::App() : object(nullptr), grid(nullptr){};
-SDL_Window *App::getWindow() { return this->window; }
+App::App() : object(nullptr){};
 
 App::~App() {
-  SDL_DestroyWindow(this->window);
-  this->clearObjects();
-  this->models.clear();
-}
-
-void App::clearGrid() {
-  GridTile *current = this->grid;
-  while (current) {
-    GridTile *next = current->next;
-    delete current;
-    current = next;
-  }
-}
-
-void App::initGrid() {
-  for (float x = 0.0f; x < GRID_TILE * GRID; x += GRID_TILE) {
-    for (float z = 0.0f; z < GRID_TILE * GRID; z += GRID_TILE) {
-      GridTile *tile = new GridTile();
-      tile->next = this->grid;
-      tile->a.setPosition(x, 0, z);
-      tile->b.setPosition(x + GRID_TILE - 0.02f, 0, z);
-      tile->c.setPosition(x + GRID_TILE - 0.02f, 0, z + GRID_TILE - 0.02f);
-      tile->d.setPosition(x, 0, z + GRID_TILE - 0.02f);
-      this->grid = tile;
-    }
-  }
+  SDL_DestroyWindow(window);
+  clearObjects();
+  models.clear();
 }
 
 void App::clearObjects() {
-  Object *current = this->object;
+  Object *current = object;
 
   while (current) {
     Object *next = current->next;
@@ -67,7 +32,7 @@ void App::clearObjects() {
     current = next;
   }
 
-  this->object = nullptr;
+  object = nullptr;
 }
 
 int App::initVideo(int width, int height) {
@@ -79,15 +44,15 @@ int App::initVideo(int width, int height) {
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
-  this->window = SDL_CreateWindow("window", SDL_WINDOWPOS_UNDEFINED,
-                                  SDL_WINDOWPOS_UNDEFINED, width, height,
-                                  SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-  if (this->window == NULL) {
+  window = SDL_CreateWindow("window", SDL_WINDOWPOS_UNDEFINED,
+                            SDL_WINDOWPOS_UNDEFINED, width, height,
+                            SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+  if (window == NULL) {
     SDL_Log("Create window failed %s\n", SDL_GetError());
     return ERROR_CREATE_WINDOW;
   }
 
-  SDL_GLContext context = SDL_GL_CreateContext(this->window);
+  SDL_GLContext context = SDL_GL_CreateContext(window);
   if (context == NULL) {
     SDL_Log("Create context failed\n");
     return ERROR_CREATE_CONTEXT;
@@ -120,9 +85,6 @@ int App::initGL() {
     return ERROR_INIT_OPENGL;
   }
 
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
   error = glGetError();
   if (error != GL_NO_ERROR) {
     SDL_Log("Init OpenGl failed %s\n", gluErrorString(error));
@@ -139,28 +101,30 @@ int App::initGL() {
 }
 
 int App::init(int width, int height) {
-  this->width = width;
-  this->height = height;
+  appWindow.width = width;
+  appWindow.height = height;
 
   SDL_Log("init start\n");
-  int errorCode = this->initVideo(width, height);
+  int errorCode = initVideo(width, height);
+
+  hud.init(appWindow);
 
   if (errorCode == 0) {
-    this->player.setPosition(0, 0, 0);
-    this->quit = false;
+    player.setPosition(0, 0, 0);
+    quit = false;
 
     Model *model = new Model();
-    bool result = model->load("./medivalhouse/Medieval_House.obj",
-                              "./medivalhouse/Texture/Medieval_House_Diff.png");
+    bool result =
+        model->load("./media/medivalhouse/Medieval_House.obj",
+                    "./media/medivalhouse/Texture/Medieval_House_Diff.png");
     SDL_Log("load result: %d\n", result);
     if (result) {
-      this->models.push_back(model);
-      this->createObject({0, 0, 0})->model = model;
+      models.push_back(model);
+      createObject({0, 0, 0})->model = model;
     } else {
       delete model;
     }
 
-    this->initGrid();
     SDL_Log("init done\n");
   }
   return errorCode;
@@ -169,8 +133,8 @@ int App::init(int width, int height) {
 Object *App::createObject(Position position) {
   Object *ob = new Object;
   ob->setPosition(position);
-  ob->next = this->object;
-  this->object = ob;
+  ob->next = object;
+  object = ob;
   return ob;
 }
 
@@ -197,36 +161,34 @@ void App::events() {
     case SDL_KEYDOWN:
       switch (e.key.keysym.scancode) {
       case SDL_SCANCODE_SPACE:
-        this->enableColorMesh = !this->enableColorMesh;
         break;
       case SDL_SCANCODE_W:
-        this->player.z += STEP;
+        player.z += STEP;
         break;
       case SDL_SCANCODE_S:
-        this->player.z -= STEP;
+        player.z -= STEP;
         break;
       case SDL_SCANCODE_A:
-        this->player.x += STEP;
+        player.x += STEP;
         break;
       case SDL_SCANCODE_D:
-        this->player.x -= STEP;
+        player.x -= STEP;
         break;
       case SDL_SCANCODE_Q:
-        this->player.moveTo(0, 0, 1);
+        player.moveTo(0, 0, 1);
         break;
       case SDL_SCANCODE_1:
-        this->object->model->scale -= 0.002f;
-        SDL_Log("scale%f\n", this->object->model->scale);
+        object->model->scale -= 0.002f;
+        SDL_Log("scale%f\n", object->model->scale);
         break;
       case SDL_SCANCODE_2:
-        this->object->model->scale += 0.002f;
-        SDL_Log("scale%f\n", this->object->model->scale);
+        object->model->scale += 0.002f;
+        SDL_Log("scale%f\n", object->model->scale);
         break;
       case SDL_SCANCODE_3:
-        this->enableObjects = !this->enableObjects;
         break;
       case SDL_SCANCODE_ESCAPE:
-        this->quit = true;
+        quit = true;
         break;
       default:
         break;
@@ -235,8 +197,8 @@ void App::events() {
     case SDL_MOUSEBUTTONDOWN:
       switch (e.button.button) {
       case MOUSE_LEFT:
-        this->mouse.setPosition(e.button.x, e.button.y, 0);
-        this->click();
+        mouse.setPosition(e.button.x, e.button.y, 0);
+        click();
         break;
       }
       break;
@@ -246,20 +208,25 @@ void App::events() {
 
 void App::loop() {
   Uint32 lastUpdate = SDL_GetTicks();
-  while (false == this->quit) {
+  while (false == quit) {
+
     Uint32 currentUpdate = SDL_GetTicks();
     Uint64 currentFrameStart = SDL_GetPerformanceCounter();
 
     float deltaTime = (currentUpdate - lastUpdate) / 1000.0f;
     lastUpdate = currentUpdate;
-    this->updateCreature(this->player, deltaTime);
+    updateCreature(player, deltaTime);
 
-    this->render();
-    this->events();
-    if (this->enableObjects) {
-      this->renderObjects();
-    }
-    SDL_GL_SwapWindow(this->window);
+    glClearColor(CLEAR_COLOR);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    events();
+
+    glUseProgram(0);
+    renderScene();
+    hud.render();
+
+    SDL_GL_SwapWindow(window);
 
     SDL_Delay(5);
 
@@ -271,73 +238,6 @@ void App::loop() {
       SDL_Delay(floor(16.666f - elapsedMS));
     }
   }
-}
-
-void App::renderGrid() {
-  GridTile *current = this->grid;
-  glColor3f(0.7, 0.7, 0.7);
-  while (current) {
-    glBegin(GL_QUADS);
-    glVertex3f(current->a.x, current->a.y, current->a.z);
-    glVertex3f(current->b.x, current->b.y, current->b.z);
-    glVertex3f(current->c.x, current->c.y, current->c.z);
-    glVertex3f(current->d.x, current->d.y, current->d.z);
-    glEnd();
-    current = current->next;
-  }
-}
-
-void App::renderColorMesh() {}
-
-void App::renderWorld() {
-  this->renderGrid();
-
-  glBegin(GL_QUADS);
-  glColor3f(1.0, 1.0, 0.0);
-  glVertex3f(this->player.x - 0.02f, this->player.y, this->player.z - 0.02f);
-  glVertex3f(this->player.x + 0.02f, this->player.y, this->player.z - 0.02f);
-  glVertex3f(this->player.x + 0.02f, this->player.y, this->player.z + 0.02f);
-  glVertex3f(this->player.x - 0.02f, this->player.y, this->player.z + 0.02f);
-  glEnd();
-
-  glBegin(GL_LINES);
-
-  glColor3d(1.0, 0.0, 0.0);
-  glVertex3d(0.0, 0.0, 0.0);
-  glVertex3d(1.0, 0.0, 0.0);
-
-  glColor3d(0.0, 1.0, 0.0);
-  glVertex3d(0.0, 0.0, 0.0);
-  glVertex3d(0.0, 1.0, 0.0);
-
-  glColor3d(0.0, 0.0, 1.0);
-  glVertex3d(0.0, 0.0, 0.0);
-  glVertex3d(0.0, 0.0, 1.0);
-
-  glEnd();
-
-  glPointSize(10);
-  glBegin(GL_POINTS);
-  // glColor3f(1, 0, 0);
-  // glVertex3f(1, 0, 0);
-  // glVertex3f(1, 0, 1);
-  // glVertex3f(0, 0, 0);
-  // glVertex3f(0, 0, 1);
-  glColor3f(0, 0, 0);
-  glVertex3f(this->player.x, this->player.y, this->player.z);
-  glColor3f(0, 1, 0);
-  glVertex3f(this->player.x, this->clickPos.y, this->player.z);
-  glColor3f(1, 0, 0);
-  glVertex3f(this->clickPos.x, this->clickPos.y, this->clickPos.z);
-  glColor3f(0, 1, 0);
-  glVertex3f(this->clickPos2.x, this->clickPos2.y, this->clickPos2.z);
-
-  glEnd();
-
-  glBegin(GL_LINES);
-  glVertex3f(this->clickPos.x, this->clickPos.y, this->clickPos.z);
-  glVertex3f(this->clickPos2.x, this->clickPos2.y, this->clickPos2.z);
-  glEnd();
 }
 
 void App::click() {
@@ -352,49 +252,48 @@ void App::click() {
   GLdouble winX, winY, winZ;
   gluProject(0.0f, 0.0f, 0.0f, modelview, projection, view, &winX, &winY,
              &winZ);
-  winX = this->mouse.x;
-  winY = view[3] - this->mouse.y;
+  winX = mouse.x;
+  winY = view[3] - mouse.y;
   // winZ = 0;
   gluUnProject(winX, winY, winZ, modelview, projection, view, &objX, &objY,
                &objZ);
   SDL_Log("click (%f, %f, %f)\n", objX, objY, objZ);
-  this->clickPos.setPosition(objX, objY, objZ);
+  clickPos.setPosition(objX, objY, objZ);
 
   winZ = 0;
   gluUnProject(winX, winY, winZ, modelview, projection, view, &objX, &objY,
                &objZ);
-  this->clickPos2.setPosition(objX, objY, objZ);
+  clickPos2.setPosition(objX, objY, objZ);
 
-  Position a = this->clickPos;
-  Position b = this->clickPos2;
+  Position a = clickPos;
+  Position b = clickPos2;
 
   float t = -a.y / (b.y - a.y);
   float x = a.x + t * (b.x - a.x);
   float z = a.z + t * (b.z - a.z);
   SDL_Log("moveTo (%f, %f, %f)\n", x, 0.0f, z);
-  this->player.moveTo(x, 0, z);
+  player.moveTo(x, 0, z);
 }
 
-void App::render() {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glLoadIdentity();
-  glMatrixMode(GL_MODELVIEW);
-
-  gluPerspective(CONST::camera::fovy, this->width / this->height,
-                 CONST::camera::near, CONST::camera::far);
-  gluLookAt(this->player.x, CONST::camera::eyeY,
-            this->player.z + CONST::camera::eyeZ, this->player.x, 0,
-            this->player.z, CONST::camera::upX, CONST::camera::upY,
-            CONST::camera::upZ);
+void App::renderScene() {
+  glUseProgram(0);
 
   glEnable(GL_DEPTH_TEST);
-  this->renderWorld();
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  gluPerspective(CONST::camera::fovy, appWindow.width / appWindow.height,
+                 CONST::camera::near, CONST::camera::far);
+  gluLookAt(player.x, CONST::camera::eyeY, player.z + CONST::camera::eyeZ,
+            player.x, 0, player.z, CONST::camera::upX, CONST::camera::upY,
+            CONST::camera::upZ);
+
+  renderObjects();
 };
 
 void App::renderObjects() {
   glColor3f(1, 1, 1);
-  Object *current = this->object;
+  Object *current = object;
   while (current) {
     if (current->model) {
       current->model->render();

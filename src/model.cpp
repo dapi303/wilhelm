@@ -8,12 +8,15 @@
 #include <sstream>
 
 #include "loader/obj.h"
+
 Model::~Model() {
   SDL_Log("remove model %s\n", this->name.c_str());
   this->clear();
 }
 
 void Model::render() {
+  // glPushMatrix();
+  // glLoadIdentity();
   if (this->modelData) {
     glScalef(this->scale, this->scale, this->scale);
     std::vector<std::shared_ptr<Vertex3>>::iterator vIt;

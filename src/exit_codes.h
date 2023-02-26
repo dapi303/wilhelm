@@ -7,5 +7,7 @@
 #define ERROR_INIT_GLEW 4
 #define ERROR_INIT_SDL 5
 #define ERROR_INIT_OPENGL 6
+#define ERROR_INIT_FT 7
+#define ERROR_LOAD_FONT 8
 
 #endif

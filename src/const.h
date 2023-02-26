@@ -1,7 +1,7 @@
 #ifndef const__h
 #define const__h
 
-#define CLEAR_COLOR 0.f, 0.f, 0.f, 1.f
+#define CLEAR_COLOR 0.2f, 0.3f, 0.3f, 1.0f
 
 namespace CONST {
 const float minDistanceToMove = 0.003f;

@@ -32,4 +32,5 @@ target_link_libraries(main glad::glad)
 target_link_libraries(main -static-libstdc++ -static-libgcc)
 
 file(COPY media DESTINATION bin)
+file(COPY shaders DESTINATION bin)
 add_custom_target(start COMMAND cd bin && ./main)

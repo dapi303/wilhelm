@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 
+//#include "shaders/shader.h"
 #include "app.h"
 
 #define SCREEN_HEIGHT 800
