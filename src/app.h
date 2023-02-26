@@ -7,7 +7,7 @@
 #include "glm/glm.hpp"
 
 #include "font.h"
-#include "hud.h"
+#include "hud/hud.h"
 #include "model.h"
 #include "shaders/shaders.h"
 #include "structs.h"

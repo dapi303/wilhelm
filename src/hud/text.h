@@ -1,9 +1,9 @@
 #ifndef text__h
 #define text__h
 
-#include "font.h"
-#include "shaders/shaders.h"
-#include "structs.h"
+#include "../font.h"
+#include "../shaders/shaders.h"
+#include "../structs.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 
