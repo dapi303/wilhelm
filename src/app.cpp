@@ -9,6 +9,7 @@
 
 #include "const.h"
 #include "exit_codes.h"
+#include "models.h"
 
 #define STEP 0.1f
 #define MOUSE_LEFT 1
@@ -113,35 +114,57 @@ int App::init(int width, int height) {
     player.setPosition(0, 0, 0);
     quit = false;
 
-    std::shared_ptr<Model> model(new Model());
-    bool result =
-        model->load("./media/medivalhouse/Medieval_House.obj",
-                    "./media/medivalhouse/Texture/Medieval_House_Diff.png");
-    SDL_Log("load result: %d\n", result);
-    if (result) {
-      models.push_back(model);
-      createObject({0, 0, 0})->model = model;
+    for (ModelMeta meta : modelsMeta) {
+      loadModel(meta);
+    }
+    if (models.size() >= 2) {
+      createObject({0, 0, 0}, "tree0");
+      createObject({0.3, 0, 0}, "tree1");
+      createObject({0.4, 0, 0.1}, "tree1");
+      createObject({0.4, 0, 0.4}, "tree1");
+      createObject({0.2, 0, 0.65}, "tree1");
+      createObject({0.1, 0, 0.5}, "tree1");
+      createObject({-0.4, 0, -0.4}, "house0");
     }
 
-    std::shared_ptr<Model> playerModel(new Model());
-    result = playerModel->load("./media/player.obj", "");
-    if (result) {
-      models.push_back(playerModel);
-      player.model = playerModel;
-      player.model->scale = 0.05f;
-    }
+    glEnable(GL_LIGHTING);
+    float lightParam[4] = {CONST::lightStrength, CONST::lightStrength,
+                           CONST::lightStrength, 1.0f};
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lightParam);
 
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
     SDL_Log("init done\n");
   }
   return errorCode;
 };
 
-Object *App::createObject(Position position) {
+bool App::loadModel(const ModelMeta &meta) {
+
+  std::shared_ptr<Model> model(new Model(meta));
+  bool result = model->load(meta.pathObject.c_str(), meta.pathTexture.c_str());
+  if (result) {
+    models.push_back(model);
+  } else {
+    SDL_LogWarn(0, "Failed to load model: %s\n", meta.id.c_str());
+  }
+  return result;
+}
+
+void App::createObject(Position position, std::string modelId) {
+  std::shared_ptr<Model> model;
+  for (std::shared_ptr<Model> item : models) {
+    if (item->getMeta().id == modelId) {
+      model = item;
+      break;
+    }
+  }
+
   Object *ob = new Object;
+  ob->model = model;
   ob->setPosition(position);
   ob->next = object;
   object = ob;
-  return ob;
 }
 
 void App::updateCreature(Creature &creature, float deltaTime) {
@@ -169,29 +192,38 @@ void App::events() {
       case SDL_SCANCODE_SPACE:
         break;
       case SDL_SCANCODE_W:
-        player.z += STEP;
+        player.moveTo(player.x, player.y, player.z + STEP);
         break;
       case SDL_SCANCODE_S:
-        player.z -= STEP;
+        player.moveTo(player.x, player.y, player.z - STEP);
         break;
       case SDL_SCANCODE_A:
-        player.x += STEP;
+        player.moveTo(player.x + STEP, player.y, player.z);
         break;
       case SDL_SCANCODE_D:
-        player.x -= STEP;
+        player.moveTo(player.x - STEP, player.y, player.z);
         break;
       case SDL_SCANCODE_Q:
         player.moveTo(0, 0, 1);
         break;
       case SDL_SCANCODE_1:
-        object->model->scale -= 0.002f;
-        SDL_Log("scale%f\n", object->model->scale);
         break;
       case SDL_SCANCODE_2:
-        object->model->scale += 0.002f;
-        SDL_Log("scale%f\n", object->model->scale);
+        light0 = !light0;
+        if (light0) {
+          glEnable(GL_LIGHT0);
+        } else {
+          glDisable(GL_LIGHT0);
+        }
         break;
       case SDL_SCANCODE_3:
+        light = !light;
+        SDL_Log("light: %d\n", light);
+        if (light) {
+          glEnable(GL_LIGHTING);
+        } else {
+          glDisable(GL_LIGHTING);
+        }
         break;
       case SDL_SCANCODE_ESCAPE:
         quit = true;
@@ -222,6 +254,10 @@ void App::loop() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(0);
+
+    float lightParam[4] = {player.x + 0.1f, player.y + 0.5f, player.z, 1.0f};
+    glLightfv(GL_LIGHT0, GL_POSITION, lightParam);
+
     prepareSceneView();
     events();
     renderObjects();

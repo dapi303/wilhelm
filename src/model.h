@@ -11,18 +11,23 @@
 #include "const.h"
 #include "vertex.h"
 
+#include "models.h"
+
 class Model {
 public:
+  Model(const ModelMeta &meta);
   ~Model();
   bool load(const char *path, const char *texturePath);
   void render();
   float scale = CONST::initialObjectScale;
+  const ModelMeta &getMeta();
 
 private:
   void clear();
   std::string name;
 
   std::shared_ptr<ModelData> modelData;
+  ModelMeta meta;
 };
 
 #endif

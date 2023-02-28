@@ -12,6 +12,7 @@
 #include "model.h"
 #include "shaders/shaders.h"
 #include "structs.h"
+#include "models.h"
 
 class App {
 public:
@@ -29,8 +30,9 @@ private:
 
   void prepareSceneView();
   void renderObjects();
+  bool loadModel(const ModelMeta &meta);
 
-  Object *createObject(Position);
+  void createObject(Position, std::string modelId);
   void updateCreature(Creature &creature, float deltaTime);
   void events();
   void click();
@@ -51,6 +53,8 @@ private:
 
   HUD hud;
   AppWindow appWindow;
+  bool light = true;
+  bool light0 = true;
   Fps fps;
 };
 

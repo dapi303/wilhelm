@@ -9,11 +9,15 @@
 
 #include "loader/obj.h"
 
+Model::Model(const ModelMeta &meta) : meta(meta), scale(meta.scale) {}
+
 Model::~Model() {
   SDL_Log("remove model %s\n", name.c_str());
   clear();
   SDL_Log("remove model done\n");
 }
+
+const ModelMeta &Model::getMeta() { return meta; }
 
 void Model::render() {
   // glPushMatrix();
