@@ -1,342 +1,40 @@
-#include "app.h"
-
 #include <GL/glew.h>
-#include <GL/glu.h>
-#include <SDL2/SDL_opengl.h>
+#include <glm/ext/matrix_transform.hpp>
 #include <stdio.h>
+#include <stdlib.h>
 
-#include <algorithm>
+#include <window.h>
+#include <model.h>
 
-#include "const.h"
-#include "exit_codes.h"
-#include "models.h"
-
-#define STEP 0.1f
-#define MOUSE_LEFT 1
-#define MOUSE_RIGHT 3
-
-App::App() : object(nullptr), hud(fps, appWindow, player){};
-
-App::~App() {
-  SDL_DestroyWindow(window);
-  clearObjects();
-  models.clear();
-}
-
-void App::clearObjects() {
-  Object *current = object;
-
-  while (current) {
-    Object *next = current->next;
-    current->next = nullptr;
-    delete current;
-    current = next;
+int main(void) {
+  Window window(1024, 768);
+  if (window.create() != 0) {
+    return -1;
   }
 
-  object = nullptr;
-}
+  glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+  Model model;
+  model.load();
 
-int App::initVideo(int width, int height) {
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-    SDL_Log("SDL init failed %s\n", SDL_GetError());
-    return ERROR_INIT_SDL;
-  }
-
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-
-  window = SDL_CreateWindow("window", SDL_WINDOWPOS_UNDEFINED,
-                            SDL_WINDOWPOS_UNDEFINED, width, height,
-                            SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-  if (window == NULL) {
-    SDL_Log("Create window failed %s\n", SDL_GetError());
-    return ERROR_CREATE_WINDOW;
-  }
-
-  SDL_GLContext context = SDL_GL_CreateContext(window);
-  if (context == NULL) {
-    SDL_Log("Create context failed\n");
-    return ERROR_CREATE_CONTEXT;
-  }
-
-  int initGlStatus = initGL();
-  if (initGlStatus != 0) {
-    SDL_Log("init gl failed\n");
-    return ERROR_INIT_GL;
-  }
-
-  if (glewInit() != GLEW_OK) {
-    SDL_Log("glew init failed\n");
-    return ERROR_INIT_GLEW;
-  }
-
-  return 0;
-}
-
-int App::initGL() {
-  bool success = true;
-  GLenum error = GL_NO_ERROR;
-
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-
-  error = glGetError();
-  if (error != GL_NO_ERROR) {
-    SDL_Log("Init OpenGl failed %s\n", gluErrorString(error));
-    return ERROR_INIT_OPENGL;
-  }
-
-  error = glGetError();
-  if (error != GL_NO_ERROR) {
-    SDL_Log("Init OpenGl failed %s\n", gluErrorString(error));
-    return ERROR_INIT_OPENGL;
-  }
-
-  error = glGetError();
-  if (error != GL_NO_ERROR) {
-    SDL_Log("Init OpenGl failed %s\n", gluErrorString(error));
-    return ERROR_INIT_OPENGL;
-  }
-
-  return 0;
-}
-
-int App::init(int width, int height) {
-  appWindow.width = width;
-  appWindow.height = height;
-
-  SDL_Log("init start\n");
-  int errorCode = initVideo(width, height);
-
-  hud.init();
-
-  if (errorCode == 0) {
-    player.setPosition(0, 0, 0);
-    quit = false;
-
-    for (ModelMeta meta : modelsMeta) {
-      loadModel(meta);
-    }
-    if (models.size() >= 2) {
-      createObject({0, 0, 0}, "tree0");
-      createObject({0.3, 0, 0}, "tree1");
-      createObject({0.4, 0, 0.1}, "tree1");
-      createObject({0.4, 0, 0.4}, "tree1");
-      createObject({0.2, 0, 0.65}, "tree1");
-      createObject({0.1, 0, 0.5}, "tree1");
-      createObject({-0.4, 0, -0.4}, "house0");
-    }
-
-    glEnable(GL_LIGHTING);
-    float lightParam[4] = {CONST::lightStrength, CONST::lightStrength,
-                           CONST::lightStrength, 1.0f};
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lightParam);
-
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    SDL_Log("init done\n");
-  }
-  return errorCode;
-};
-
-bool App::loadModel(const ModelMeta &meta) {
-
-  std::shared_ptr<Model> model(new Model(meta));
-  bool result = model->load(meta.pathObject.c_str(), meta.pathTexture.c_str());
-  if (result) {
-    models.push_back(model);
-  } else {
-    SDL_LogWarn(0, "Failed to load model: %s\n", meta.id.c_str());
-  }
-  return result;
-}
-
-void App::createObject(Position position, std::string modelId) {
-  std::shared_ptr<Model> model;
-  for (std::shared_ptr<Model> item : models) {
-    if (item->getMeta().id == modelId) {
-      model = item;
-      break;
-    }
-  }
-
-  Object *ob = new Object;
-  ob->model = model;
-  ob->setPosition(position);
-  ob->next = object;
-  object = ob;
-}
-
-void App::updateCreature(Creature &creature, float deltaTime) {
-  if (creature.target.active) {
-    creature.x = creature.x + creature.direction.x * creature.speed * deltaTime;
-    creature.z = creature.z + creature.direction.z * creature.speed * deltaTime;
-    float distance = creature.distance(creature.target);
-    if (distance < CONST::minDistanceToMove) {
-      creature.target.active = false;
-      SDL_Log("stop creature, pos %f %f %f\n", creature.x, creature.y,
-              creature.z);
-    }
-  }
-}
-
-void App::events() {
-  SDL_Event e;
-  while (SDL_PollEvent(&e)) {
-    switch (e.type) {
-    case SDL_QUIT:
-      quit = true;
-      break;
-    case SDL_KEYDOWN:
-      switch (e.key.keysym.scancode) {
-      case SDL_SCANCODE_SPACE:
-        break;
-      case SDL_SCANCODE_W:
-        player.moveTo(player.x, player.y, player.z + STEP);
-        break;
-      case SDL_SCANCODE_S:
-        player.moveTo(player.x, player.y, player.z - STEP);
-        break;
-      case SDL_SCANCODE_A:
-        player.moveTo(player.x + STEP, player.y, player.z);
-        break;
-      case SDL_SCANCODE_D:
-        player.moveTo(player.x - STEP, player.y, player.z);
-        break;
-      case SDL_SCANCODE_Q:
-        player.moveTo(0, 0, 1);
-        break;
-      case SDL_SCANCODE_1:
-        break;
-      case SDL_SCANCODE_2:
-        light0 = !light0;
-        if (light0) {
-          glEnable(GL_LIGHT0);
-        } else {
-          glDisable(GL_LIGHT0);
-        }
-        break;
-      case SDL_SCANCODE_3:
-        light = !light;
-        SDL_Log("light: %d\n", light);
-        if (light) {
-          glEnable(GL_LIGHTING);
-        } else {
-          glDisable(GL_LIGHTING);
-        }
-        break;
-      case SDL_SCANCODE_ESCAPE:
-        quit = true;
-        break;
-      default:
-        break;
-      }
-      break;
-    case SDL_MOUSEBUTTONDOWN:
-      switch (e.button.button) {
-      case MOUSE_LEFT:
-        mouse.setPosition(e.button.x, e.button.y, 0);
-        click();
-        break;
-      }
-      break;
-    }
-  }
-}
-
-void App::loop() {
-  fps.init();
-  while (false == quit) {
-    fps.frameStart();
-    updateCreature(player, fps.getDeltaTime());
-
-    glClearColor(CLEAR_COLOR);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glUseProgram(0);
-
-    float lightParam[4] = {player.x + 0.1f, player.y + 0.5f, player.z, 1.0f};
-    glLightfv(GL_LIGHT0, GL_POSITION, lightParam);
-
-    prepareSceneView();
-    events();
-    renderObjects();
-    hud.render();
-
-    SDL_GL_SwapWindow(window);
-
-    SDL_Delay(5);
-
-    fps.frameEnd();
-  }
-}
-
-void App::click() {
-  GLint view[4];
-  glGetIntegerv(GL_VIEWPORT, view);
-  GLdouble modelview[16];
-  glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
-  GLdouble projection[16];
-  glGetDoublev(GL_PROJECTION_MATRIX, projection);
-  GLdouble objX, objY, objZ;
-
-  GLdouble winX, winY, winZ;
-  gluProject(0.0f, 0.0f, 0.0f, modelview, projection, view, &winX, &winY,
-             &winZ);
-  winX = mouse.x;
-  winY = view[3] - mouse.y;
-  // winZ = 0;
-  gluUnProject(winX, winY, winZ, modelview, projection, view, &objX, &objY,
-               &objZ);
-  SDL_Log("click (%f, %f, %f)\n", objX, objY, objZ);
-  clickPos.setPosition(objX, objY, objZ);
-
-  winZ = 0;
-  gluUnProject(winX, winY, winZ, modelview, projection, view, &objX, &objY,
-               &objZ);
-  clickPos2.setPosition(objX, objY, objZ);
-
-  Position a = clickPos;
-  Position b = clickPos2;
-
-  float t = -a.y / (b.y - a.y);
-  float x = a.x + t * (b.x - a.x);
-  float z = a.z + t * (b.z - a.z);
-  SDL_Log("moveTo (%f, %f, %f)\n", x, 0.0f, z);
-  player.moveTo(x, 0, z);
-}
-
-void App::prepareSceneView() {
-  glUseProgram(0);
+  glm::mat4 projectionMatrix = window.getProjection();
+  glm::mat4 viewMatrix =
+      glm::lookAt(glm::vec3(4, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
   glEnable(GL_DEPTH_TEST);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  glDepthFunc(GL_LESS);
 
-  gluPerspective(CONST::camera::fovy, appWindow.width / appWindow.height,
-                 CONST::camera::near, CONST::camera::far);
-  gluLookAt(player.x, CONST::camera::eyeY, player.z + CONST::camera::eyeZ,
-            player.x, 0, player.z, CONST::camera::upX, CONST::camera::upY,
-            CONST::camera::upZ);
-};
+  do {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-void App::renderObjects() {
-  glColor3f(1, 1, 1);
-  Object *current = object;
-  while (current) {
-    if (current->model) {
-      glPushMatrix();
-      glTranslatef(current->x, current->y, current->z);
-      current->model->render();
-      glPopMatrix();
-    }
-    current = current->next;
-  }
+    model.render(projectionMatrix, viewMatrix);
 
-  glPushMatrix();
-  glTranslatef(player.x, player.y, player.z);
-  if (player.model) {
-    player.model->render();
-  }
-  glPopMatrix();
+    glfwSwapBuffers(window.getInstance());
+    glfwPollEvents();
+  } while (glfwGetKey(window.getInstance(), GLFW_KEY_ESCAPE) != GLFW_PRESS &&
+           glfwWindowShouldClose(window.getInstance()) == 0);
+
+  window.close();
+
+  return 0;
 }
+
