@@ -1,11 +1,9 @@
-#include "font.h"
+#include <font.h>
 
 #include <GL/glew.h>
-#include <SDL_log.h>
 #include <freetype/freetype.h>
 #include <ft2build.h>
 
-#include "exit_codes.h"
 #include FT_FREETYPE_H
 
 Characters loadFont() {
@@ -18,21 +16,21 @@ Characters loadFont() {
 
   error = FT_Init_FreeType(&ft);
   if (error != 0) {
-    SDL_LogError(0, "loadFont, failed to init freetype");
+    fprintf(stderr, "loadFont, failed to init freetype");
     return characters;
   }
 
   error = FT_New_Face(ft, "media/font.ttf", 0, &face);
   if (error != 0) {
-    SDL_LogError(0, "loadFont, failed to create face");
+    fprintf(stderr, "loadFont, failed to create face");
     return characters;
   }
 
   FT_Set_Pixel_Sizes(face, 0, 48);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  for (Uint32 c = 0; c < 128; ++c) {
+  for (unsigned int c = 0; c < 128; ++c) {
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-      SDL_LogError(0, "loadFont, failed to load glyph %c\n", c);
+      fprintf(stderr, "loadFont, failed to load glyph %c\n", c);
       continue;
     }
 
@@ -59,5 +57,6 @@ Characters loadFont() {
 
   FT_Done_Face(face);
   FT_Done_FreeType(ft);
+  printf("init font done\n");
   return characters;
 }

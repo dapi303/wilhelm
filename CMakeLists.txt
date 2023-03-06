@@ -5,24 +5,22 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-file(GLOB SOURCES src/*.cpp src/*.h src/*/*.cpp src/*/*.h)
+file(GLOB SOURCES src/*.cpp include/*.h src/*/*.cpp include/*/*.h)
 add_executable(main ${SOURCES})
 
-find_package(SDL2 CONFIG REQUIRED)
+
 find_package(GLEW REQUIRED)
 find_package(glm CONFIG REQUIRED)
 set(OpenGL_GL_PREFERENCE LEGACY)
 find_package(OpenGL REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(glad CONFIG REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
 
-
-target_link_libraries(main
-    $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
-    $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
-)
+target_include_directories(main PRIVATE "include")
 
 add_definitions(-DGLEW_STATIC)
+target_link_libraries(main glfw)
 target_link_libraries(main GLEW::GLEW)
 target_link_libraries(main glm::glm)
 target_link_libraries(main OpenGL::GL)

@@ -1,42 +1,31 @@
 #include "fps.h"
-#include "const.h"
+#include <GLFW/glfw3.h>
+#include <cstdio>
 
-#include <SDL_timer.h>
+#define MAX_FPS 100
+#define FPS_UPDATE_DELAY_S 0.3f
 
 void Fps::init() {
-  lastUpdate = SDL_GetTicks();
+  lastUpdateS = glfwGetTime();
   fps = 0.0f;
-  minFrameTimeMs = 1000.0f / CONST::maxFps;
+  minFrameTimeMs = 1000.0f / MAX_FPS;
 }
 
-void Fps::frameStart() {
-  Uint32 currentUpdate = SDL_GetTicks();
-  currentFrameStart = SDL_GetPerformanceCounter();
+void Fps::update() {
+  double currentUpdateS = glfwGetTime();
 
-  if (lastUpdate > 0) {
-    deltaTime = (currentUpdate - lastUpdate) / 1000.0f;
+  if (lastUpdateS > 0) {
+    deltaTimeS = (currentUpdateS - lastUpdateS);
   }
-  lastUpdate = currentUpdate;
+  lastUpdateS = currentUpdateS;
 
-  if (deltaTime > 0 &&
-      currentUpdate - lastCounterUpdate > float(CONST::fpsUpdateDelaysMs)) {
-    lastCounterUpdate = currentUpdate;
-    fps = 1000.0f / deltaTime / 1000.0f;
-  }
-}
-
-#include <iostream>
-
-void Fps::frameEnd() {
-  Uint64 currentFrameEnd = SDL_GetPerformanceCounter();
-  float elapsedMS = (currentFrameEnd - currentFrameStart) /
-                    (float)SDL_GetPerformanceFrequency() * 1000.0f;
-
-  if (elapsedMS < minFrameTimeMs) {
-    SDL_Delay(minFrameTimeMs - elapsedMS);
+  if (deltaTimeS > 0 &&
+      currentUpdateS - lastCounterUpdateS > FPS_UPDATE_DELAY_S) {
+    lastCounterUpdateS = currentUpdateS;
+    fps = 1000.0f / deltaTimeS / 1000.0f;
   }
 }
 
-float const Fps::getDeltaTime() { return deltaTime; }
+float const Fps::getDeltaTime() { return deltaTimeS; }
 
 float const Fps::getFps() { return fps; }
