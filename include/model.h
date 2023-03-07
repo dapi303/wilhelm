@@ -8,7 +8,9 @@ class Model {
 public:
   ~Model();
   void load();
-  void render(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix);
+  void const render(const glm::mat4 &projectionMatrix,
+                    const glm::mat4 &viewMatrix,
+                    const glm::vec3 &translate) const;
 
 private:
   GLuint vertexArrayId;

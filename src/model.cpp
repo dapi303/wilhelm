@@ -1,10 +1,13 @@
 #include "objLoader.h"
+#include <glm/ext/matrix_transform.hpp>
 #include <model.h>
 #include <shaders.h>
 #include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+#include <text.h>
 
 GLuint loadTexture();
 
@@ -57,7 +60,7 @@ void Model::load() {
                GL_STATIC_DRAW);
 
   matrixId = glGetUniformLocation(programId, "MVP");
-  modelMatrix = glm::mat4(1.0f);
+  modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
   texture = loadTexture();
   textureId = glGetUniformLocation(programId, "myTextureSampler");
@@ -101,11 +104,14 @@ GLuint loadTexture() {
   return textureID;
 }
 
-void Model::render(const glm::mat4 &projectionMatrix,
-                   const glm::mat4 &viewMatrix) {
+void const Model::render(const glm::mat4 &projectionMatrix,
+                         const glm::mat4 &viewMatrix,
+                         const glm::vec3 &translate) const {
   glUseProgram(programId);
+  glBindVertexArray(vertexArrayId);
 
-  glm::mat4 mvp = projectionMatrix * viewMatrix * modelMatrix;
+  glm::mat4 mvp =
+      projectionMatrix * viewMatrix * glm::translate(modelMatrix, translate);
   glUniformMatrix4fv(matrixId, 1, GL_FALSE, &mvp[0][0]);
 
   glActiveTexture(GL_TEXTURE0);

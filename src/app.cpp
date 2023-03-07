@@ -5,9 +5,12 @@
 
 #include <window.h>
 #include <model.h>
+#include "hud.h"
 
 int main(void) {
-  Window window(1024, 768);
+  const int width = 1024;
+  const int height = 768;
+  Window window(width, height);
   if (window.create() != 0) {
     return -1;
   }
@@ -18,15 +21,22 @@ int main(void) {
 
   glm::mat4 projectionMatrix = window.getProjection();
   glm::mat4 viewMatrix =
-      glm::lookAt(glm::vec3(4, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+      glm::lookAt(glm::vec3(0, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 
+  Hud hud;
+  hud.init(width, height);
+
   do {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
-    model.render(projectionMatrix, viewMatrix);
+    model.render(projectionMatrix, viewMatrix, glm::vec3(2.0f, 0.0f, 0.0f));
+    model.render(projectionMatrix, viewMatrix, glm::vec3(-2.2f, 0.0f, -1.0f));
+
+    hud.render();
 
     glfwSwapBuffers(window.getInstance());
     glfwPollEvents();
