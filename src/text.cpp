@@ -15,6 +15,7 @@ int Text::init(const int width, const int height) {
       lineHeight = it->second.Size.y;
     }
   }
+  printf("lineHeight %d\n", lineHeight);
   shader = loadShaders("shaders/font.vert", "shaders/font.frag");
   glUseProgram(shader);
   glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), 0.0f,
@@ -57,6 +58,10 @@ void const Text::render(std::vector<std::string> lines, float x, float y,
 
 void const Text::render(std::string text, float x, float y, float scale,
                         glm::vec3 color) {
+  glEnable(GL_CULL_FACE);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
   glUseProgram(shader);
   glUniform3f(glGetUniformLocation(shader, "textColor"), color.x, color.y,
               color.z);
@@ -92,4 +97,6 @@ void const Text::render(std::string text, float x, float y, float scale,
                 // of 1/64th pixels by 64 to get amount of pixels))
   }
   glBindTexture(GL_TEXTURE_2D, 0);
+  glDisable(GL_CULL_FACE);
+  glDisable(GL_BLEND);
 }

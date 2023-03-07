@@ -3,8 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <window.h>
-#include <model.h>
+#include "window.h"
+#include "model.h"
+#include "fps.h"
 #include "hud.h"
 
 int main(void) {
@@ -26,10 +27,14 @@ int main(void) {
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 
-  Hud hud;
+  Fps fps;
+  Hud hud(fps);
+
+  fps.init();
   hud.init(width, height);
 
   do {
+    fps.update();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
