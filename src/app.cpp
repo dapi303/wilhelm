@@ -8,6 +8,7 @@
 #include "model.h"
 #include "fps.h"
 #include "hud.h"
+#include "matrices.h"
 
 int main(void) {
   const int width = 1024;
@@ -21,12 +22,8 @@ int main(void) {
   Model model;
   model.load();
 
-  glm::vec3 cameraPosition = glm::vec3(0.0f, 1.0f, -1.0f);
-  glm::mat4 projectionMatrix =
-      glm::perspective(45.0f, float(width) / float(height), 0.1f, 20.0f);
-
-  glm::mat4 viewMatrix =
-      glm::lookAt(cameraPosition, glm::vec3(0.0f, 0, 0), glm::vec3(0, 1, 0));
+  glm::vec3 myPosition(0.0f);
+  updateMetrices(width, height);
 
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
@@ -37,16 +34,28 @@ int main(void) {
   fps.init();
   hud.init(width, height);
 
-  Mouse mouse(window.getInstance(), cameraPosition, projectionMatrix,
-              viewMatrix);
+  Mouse mouse(window.getInstance());
 
   do {
-
     fps.update();
+
+    if (mouse.clicked) {
+      mouse.clicked = false;
+      myPosition = mouse.getMouse3DPosition();
+      changeFocusPoint(myPosition);
+    }
+
+    glm::vec3 cameraPosition = getCameraPosition();
+    glm::mat4 projectionMatrix = getProjectionMatrix();
+    glm::mat4 viewMatrix = getViewMatrix();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
     model.render(projectionMatrix, viewMatrix, glm::vec3(0.0f, 0.0f, 0.0f),
+                 glm::vec3(0.05f));
+
+    model.render(projectionMatrix, viewMatrix, glm::vec3(1.0f, 0.0f, 1.0f),
                  glm::vec3(0.05f));
 
     model.render(projectionMatrix, viewMatrix, mouse.getMouse3DPosition(),

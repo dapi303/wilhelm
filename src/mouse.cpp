@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <glm/ext/vector_float3.hpp>
 #include <mouse.h>
+#include <matrices.h>
 
 glm::vec2 translateFromPixelPosition(glm::vec2 pixelPosition) {
   GLint view[4];
@@ -14,6 +15,10 @@ glm::vec2 translateFromPixelPosition(glm::vec2 pixelPosition) {
 
 glm::vec3 const Mouse::translateToWorldCords(glm::vec2 pxPosition) {
   glm::vec2 pos = translateFromPixelPosition(pxPosition);
+
+  glm::vec3 cameraPosition = getCameraPosition();
+  glm::mat4 projectionMatrix = getProjectionMatrix();
+  glm::mat4 viewMatrix = getViewMatrix();
 
   glm::vec4 clipCoords = glm::vec4(pos.x, pos.y, -1.0f, 1.0f);
   glm::mat4 inverseProj = glm::inverse(projectionMatrix);
@@ -35,10 +40,7 @@ glm::vec3 const Mouse::translateToWorldCords(glm::vec2 pxPosition) {
                    intersectionPoint.z);
 };
 
-Mouse::Mouse(GLFWwindow *window, glm::vec3 cameraPosition,
-             glm::mat4 projectionMatrix, glm::mat4 viewMatrix)
-    : cameraPosition(cameraPosition), projectionMatrix(projectionMatrix),
-      viewMatrix(viewMatrix), mousePositionRawPx(0.0f) {
+Mouse::Mouse(GLFWwindow *window) : mousePositionRawPx(0.0f) {
 
   glfwSetWindowUserPointer(window, this);
 
@@ -54,7 +56,13 @@ void Mouse::moveCallback(GLFWwindow *window, double xpos, double ypos) {
 }
 
 void Mouse::clickCallback(GLFWwindow *window, int button, int action,
-                          int mods) {}
+                          int mods) {
+  void *data = glfwGetWindowUserPointer(window);
+  Mouse *instance = static_cast<Mouse *>(data);
+  if (action == 0) {
+    instance->clicked = true;
+  }
+}
 
 glm::vec3 const Mouse::getMouse3DPosition() {
   return translateToWorldCords(mousePositionRawPx);
