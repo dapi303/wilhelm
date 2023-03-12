@@ -9,7 +9,7 @@
 
 #include <text.h>
 
-GLuint loadTexture();
+GLuint loadTexture(const std::string &path);
 
 Model::~Model() {
   glDeleteBuffers(1, &vertexBuffer);
@@ -18,7 +18,7 @@ Model::~Model() {
   glDeleteProgram(programId);
 }
 
-void Model::load() {
+void Model::load(const std::string &modelPath, const std::string &texturePath) {
   glGenVertexArrays(1, &vertexArrayId);
   glBindVertexArray(vertexArrayId);
   programId =
@@ -27,51 +27,36 @@ void Model::load() {
   std::vector<glm::vec3> vertices;
   std::vector<glm::vec2> uvs;
   std::vector<glm::vec3> normals;
-  loadOBJ("media/cube.obj", vertices, uvs, normals);
+  loadOBJ(modelPath.c_str(), vertices, uvs, normals);
+
+  verticesCount = vertices.size();
 
   glGenBuffers(1, &vertexBuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3),
                &vertices[0], GL_STATIC_DRAW);
 
-  static const GLfloat g_uv_buffer_data[] = {
-      0.000059f, 1.0f - 0.000004f, 0.000103f, 1.0f - 0.336048f,
-      0.335973f, 1.0f - 0.335903f, 1.000023f, 1.0f - 0.000013f,
-      0.667979f, 1.0f - 0.335851f, 0.999958f, 1.0f - 0.336064f,
-      0.667979f, 1.0f - 0.335851f, 0.336024f, 1.0f - 0.671877f,
-      0.667969f, 1.0f - 0.671889f, 1.000023f, 1.0f - 0.000013f,
-      0.668104f, 1.0f - 0.000013f, 0.667979f, 1.0f - 0.335851f,
-      0.000059f, 1.0f - 0.000004f, 0.335973f, 1.0f - 0.335903f,
-      0.336098f, 1.0f - 0.000071f, 0.667979f, 1.0f - 0.335851f,
-      0.335973f, 1.0f - 0.335903f, 0.336024f, 1.0f - 0.671877f,
-      1.000004f, 1.0f - 0.671847f, 0.999958f, 1.0f - 0.336064f,
-      0.667979f, 1.0f - 0.335851f, 0.668104f, 1.0f - 0.000013f,
-      0.335973f, 1.0f - 0.335903f, 0.667979f, 1.0f - 0.335851f,
-      0.335973f, 1.0f - 0.335903f, 0.668104f, 1.0f - 0.000013f,
-      0.336098f, 1.0f - 0.000071f, 0.000103f, 1.0f - 0.336048f,
-      0.000004f, 1.0f - 0.671870f, 0.336024f, 1.0f - 0.671877f,
-      0.000103f, 1.0f - 0.336048f, 0.336024f, 1.0f - 0.671877f,
-      0.335973f, 1.0f - 0.335903f, 0.667969f, 1.0f - 0.671889f,
-      1.000004f, 1.0f - 0.671847f, 0.667979f, 1.0f - 0.335851f};
+  printf("vertices %zu\n", vertices.size());
+  printf("uvs %zu\n", uvs.size());
+  printf("normals %zu\n", normals.size());
 
   glGenBuffers(1, &colorBuffer);
   glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(g_uv_buffer_data), g_uv_buffer_data,
+  glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec3), &uvs[0],
                GL_STATIC_DRAW);
-
   matrixId = glGetUniformLocation(programId, "MVP");
   modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-  texture = loadTexture();
+  texture = loadTexture(texturePath);
   textureId = glGetUniformLocation(programId, "myTextureSampler");
 }
 
-GLuint loadTexture() {
+GLuint loadTexture(const std::string &path) {
 
   int width, height, nrChannels;
 
   unsigned char *data =
-      stbi_load("media/uvtemplate.bmp", &width, &height, &nrChannels, 0);
+      stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
   GLuint textureID;
   glGenTextures(1, &textureID);
 
@@ -119,7 +104,7 @@ void const Model::render(const glm::mat4 &projectionMatrix,
 
                         3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
-  glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
+  glDrawArrays(GL_TRIANGLES, 0, verticesCount);
 
   glDisableVertexAttribArray(0);
   glDisableVertexAttribArray(1);

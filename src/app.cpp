@@ -19,8 +19,9 @@ int main(void) {
   }
 
   glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-  Model model;
-  model.load();
+  Model modelTree, modelCube;
+  modelTree.load("media/tree/tree100.obj", "media/tree/tree.png");
+  modelCube.load("media/cube.obj", "media/uvtemplate.bmp");
 
   glm::vec3 myPosition(0.0f);
   updateMetrices(width, height);
@@ -44,6 +45,13 @@ int main(void) {
       myPosition = mouse.getMouse3DPosition();
       changeFocusPoint(myPosition);
     }
+    while (std::optional<MouseEvent> event = mouse.popEvent()) {
+      if (event->type == SCROLL) {
+        if (event->y != 0) {
+          zoomCamera(event->y * 0.1f);
+        }
+      }
+    }
 
     glm::vec3 cameraPosition = getCameraPosition();
     glm::mat4 projectionMatrix = getProjectionMatrix();
@@ -52,14 +60,14 @@ int main(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    model.render(projectionMatrix, viewMatrix, glm::vec3(0.0f, 0.0f, 0.0f),
-                 glm::vec3(0.05f));
+    modelTree.render(projectionMatrix, viewMatrix, glm::vec3(0.0f, 0.0f, 0.0f),
+                     glm::vec3(1.00f));
 
-    model.render(projectionMatrix, viewMatrix, glm::vec3(1.0f, 0.0f, 1.0f),
-                 glm::vec3(0.05f));
+    modelCube.render(projectionMatrix, viewMatrix, glm::vec3(1.0f, 0.0f, 1.0f),
+                     glm::vec3(0.05f));
 
-    model.render(projectionMatrix, viewMatrix, mouse.getMouse3DPosition(),
-                 glm::vec3(0.01f));
+    modelCube.render(projectionMatrix, viewMatrix, mouse.getMouse3DPosition(),
+                     glm::vec3(0.01f));
 
     hud.render();
 

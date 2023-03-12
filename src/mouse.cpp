@@ -46,6 +46,18 @@ Mouse::Mouse(GLFWwindow *window) : mousePositionRawPx(0.0f) {
 
   glfwSetMouseButtonCallback(window, clickCallback);
   glfwSetCursorPosCallback(window, moveCallback);
+  glfwSetScrollCallback(window, scrollCallback);
+}
+
+void Mouse::scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
+  void *data = glfwGetWindowUserPointer(window);
+  Mouse *instance = static_cast<Mouse *>(data);
+
+  MouseEvent event;
+  event.type = SCROLL;
+  event.x = xoffset;
+  event.y = yoffset;
+  instance->events.push(event);
 }
 
 void Mouse::moveCallback(GLFWwindow *window, double xpos, double ypos) {
@@ -66,4 +78,13 @@ void Mouse::clickCallback(GLFWwindow *window, int button, int action,
 
 glm::vec3 const Mouse::getMouse3DPosition() {
   return translateToWorldCords(mousePositionRawPx);
+}
+
+std::optional<MouseEvent> Mouse::popEvent() {
+  if (events.size() > 0) {
+    MouseEvent event = events.front();
+    events.pop();
+    return event;
+  }
+  return std::nullopt;
 }
