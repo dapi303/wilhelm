@@ -3,6 +3,12 @@
 
 #include <GL/gl.h>
 
-GLuint loadShaders(const char *vertexPath, const char *fragmetnPath);
+extern GLuint modelShader;
+extern GLuint uiShader;
+extern GLuint textShader;
+
+void loadAllShaders();
+GLuint loadShaders(const char *vertexPath, const char *fragmentPath);
+void deleteShaders();
 
 #endif

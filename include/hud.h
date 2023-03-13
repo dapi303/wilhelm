@@ -18,8 +18,6 @@ private:
   Fps &fps;
 
   std::vector<Button> buttons;
-
-  GLint shaderId;
 };
 
 #endif

@@ -15,7 +15,29 @@ using namespace std;
 #include <shaders.h>
 
 GLuint loadShaders(const char *vertex_file_path,
+                   const char *fragment_file_path);
+
+GLuint modelShader;
+GLuint uiShader;
+GLuint textShader;
+
+void deleteShaders() {
+  glDeleteProgram(modelShader);
+  glDeleteProgram(uiShader);
+  glDeleteProgram(textShader);
+}
+
+void loadAllShaders() {
+  modelShader =
+      loadShaders("shaders/model.vertexshader", "shaders/model.fragmentshader");
+  uiShader = loadShaders("shaders/ui.vert", "shaders/ui.frag");
+  textShader = loadShaders("shaders/font.vert", "shaders/font.frag");
+}
+
+GLuint loadShaders(const char *vertex_file_path,
                    const char *fragment_file_path) {
+  printf("loadShader: %s %s\n", vertex_file_path, fragment_file_path);
+  // printf("modelShader :%d\n", modelShader);
 
   GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
   GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);

@@ -18,9 +18,11 @@ int main(void) {
     return -1;
   }
 
+  loadAllShaders();
+
   glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
   Model modelTree, modelCube;
-  modelTree.load("media/tree/tree100.obj", "media/tree/tree.png");
+  modelTree.load("media/tree/tree101.obj", "media/tree/tree.bmp");
   modelCube.load("media/cube.obj", "media/uvtemplate.bmp");
 
   glm::vec3 myPosition(0.0f);
@@ -76,6 +78,7 @@ int main(void) {
   } while (glfwGetKey(window.getInstance(), GLFW_KEY_ESCAPE) != GLFW_PRESS &&
            glfwWindowShouldClose(window.getInstance()) == 0);
 
+  deleteShaders();
   window.close();
 
   return 0;

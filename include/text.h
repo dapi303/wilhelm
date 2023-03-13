@@ -28,7 +28,6 @@ public:
 private:
   Characters fontChars;
   unsigned int lineHeight;
-  unsigned int shader;
   unsigned int VAO, VBO;
 };
 #endif

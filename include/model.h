@@ -15,12 +15,15 @@ public:
 
 private:
   GLuint vertexArrayId;
-  GLuint programId;
   GLuint vertexBuffer;
+  GLuint normalBuffer;
   GLuint uvBuffer;
   GLuint texture;
   GLuint textureId;
   GLuint matrixId;
+  GLuint viewMatrixId;
+  GLuint modelMatrixId;
+  GLuint lightId;
   glm::mat4 modelMatrix;
 
   GLsizei verticesCount;

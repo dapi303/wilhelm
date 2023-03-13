@@ -11,21 +11,20 @@ void Hud::init(const int width, const int height) {
   this->height = height;
 
   text.init(width, height);
-  shaderId = loadShaders("shaders/ui.vert", "shaders/ui.frag");
-  glUseProgram(shaderId);
+  glUseProgram(uiShader);
   // glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), 0.0f,
   // static_cast<float>(height));
   glm::mat4 scale =
       glm::scale(glm::mat4(1.0f), glm::vec3(1.0f / width, 1.0f / height, 1.0f));
-  glUniformMatrix4fv(glGetUniformLocation(shaderId, "scale"), 1, GL_FALSE,
+  glUniformMatrix4fv(glGetUniformLocation(uiShader, "scale"), 1, GL_FALSE,
                      glm::value_ptr(scale));
-  buttons.push_back(Button(shaderId, text, "Ibcde", width / 2, height / 2));
-  // Button(shaderId, text, "button w/2 h/2", width / 2, height / 2));
-  // buttons.push_back(Button(shaderId, text, "12", 200, 400));
-  // buttons.push_back(Button(shaderId, text, "123", 100, 200));
-  // buttons.push_back(Button(shaderId, text, "abcde", 0, 200));
-  // buttons.push_back(Button(shaderId, text, "button 200 0", 200, 0));
-  // buttons.push_back(Button(shaderId, text, "but", 200, 180));
+  buttons.push_back(Button(uiShader, text, "Ibcde", width / 2, height / 2));
+  // Button(uiShader, text, "button w/2 h/2", width / 2, height / 2));
+  // buttons.push_back(Button(uiShader, text, "12", 200, 400));
+  // buttons.push_back(Button(uiShader, text, "123", 100, 200));
+  // buttons.push_back(Button(uiShader, text, "abcde", 0, 200));
+  // buttons.push_back(Button(uiShader, text, "button 200 0", 200, 0));
+  // buttons.push_back(Button(uiShader, text, "but", 200, 180));
 }
 
 void const Hud::render() {

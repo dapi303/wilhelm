@@ -15,13 +15,11 @@ int Text::init(const int width, const int height) {
       lineHeight = it->second.Size.y;
     }
   }
-  printf("lineHeight %d\n", lineHeight);
-  shader = loadShaders("shaders/font.vert", "shaders/font.frag");
-  glUseProgram(shader);
+  glUseProgram(textShader);
   glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), 0.0f,
                                     static_cast<float>(height));
-  glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE,
-                     glm::value_ptr(projection));
+  glUniformMatrix4fv(glGetUniformLocation(textShader, "projection"), 1,
+                     GL_FALSE, glm::value_ptr(projection));
 
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
@@ -62,8 +60,8 @@ void const Text::render(std::string text, float x, float y, float scale,
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  glUseProgram(shader);
-  glUniform3f(glGetUniformLocation(shader, "textColor"), color.x, color.y,
+  glUseProgram(textShader);
+  glUniform3f(glGetUniformLocation(textShader, "textColor"), color.x, color.y,
               color.z);
   glActiveTexture(GL_TEXTURE0);
   glBindVertexArray(VAO);
@@ -86,11 +84,15 @@ void const Text::render(std::string text, float x, float y, float scale,
         {xpos + w, ypos + h, 1.0f, 0.0f}};
     glBindTexture(GL_TEXTURE_2D, ch.TextureID);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+    glBufferSubData(
+        GL_ARRAY_BUFFER, 0, sizeof(vertices),
+        vertices); // be sure to use glBufferSubData and not glBufferData
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDrawArrays(GL_TRIANGLES, 0, 6);
-    x += (ch.Advance >> 6) * scale;
+    x += (ch.Advance >> 6) *
+         scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount
+                // of 1/64th pixels by 64 to get amount of pixels))
   }
   glBindTexture(GL_TEXTURE_2D, 0);
   glDisable(GL_CULL_FACE);

@@ -1,3 +1,4 @@
+#include "matrices.h"
 #include "objLoader.h"
 #include <glm/ext/matrix_transform.hpp>
 #include <model.h>
@@ -15,14 +16,11 @@ Model::~Model() {
   glDeleteBuffers(1, &vertexBuffer);
   glDeleteBuffers(1, &uvBuffer);
   glDeleteVertexArrays(1, &vertexArrayId);
-  glDeleteProgram(programId);
 }
 
 void Model::load(const std::string &modelPath, const std::string &texturePath) {
   glGenVertexArrays(1, &vertexArrayId);
   glBindVertexArray(vertexArrayId);
-  programId =
-      loadShaders("shaders/model.vertexshader", "shaders/model.fragmentshader");
 
   std::vector<glm::vec3> vertices;
   std::vector<glm::vec2> uvs;
@@ -44,11 +42,20 @@ void Model::load(const std::string &modelPath, const std::string &texturePath) {
   glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
   glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0],
                GL_STATIC_DRAW);
-  matrixId = glGetUniformLocation(programId, "MVP");
+
+  glGenBuffers(1, &normalBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+  glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0],
+               GL_STATIC_DRAW);
+
+  matrixId = glGetUniformLocation(modelShader, "MVP");
+  viewMatrixId = glGetUniformLocation(modelShader, "V");
+  modelMatrixId = glGetUniformLocation(modelShader, "M");
   modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
   texture = loadTexture(texturePath);
-  textureId = glGetUniformLocation(programId, "myTextureSampler");
+  textureId = glGetUniformLocation(modelShader, "myTextureSampler");
+  lightId = glGetUniformLocation(modelShader, "LightPosition_worldspace");
 }
 
 GLuint loadTexture(const std::string &path) {
@@ -81,12 +88,19 @@ void const Model::render(const glm::mat4 &projectionMatrix,
                          const glm::mat4 &viewMatrix,
                          const glm::vec3 &translate,
                          const glm::vec3 &scale) const {
-  glUseProgram(programId);
+  glUseProgram(modelShader);
   glBindVertexArray(vertexArrayId);
 
   glm::mat4 mvp = projectionMatrix * viewMatrix *
                   glm::scale(glm::translate(modelMatrix, translate), scale);
   glUniformMatrix4fv(matrixId, 1, GL_FALSE, &mvp[0][0]);
+
+  glm::vec3 lightPos = getCameraPosition() + glm::vec3(2, 4, 2);
+  glUniform3f(lightId, lightPos.x, lightPos.y, lightPos.z);
+  glm::mat4 ViewMatrix = viewMatrix;
+  glm::mat4 ModelMatrix = glm::mat4(1.0);
+  glUniformMatrix4fv(modelMatrixId, 1, GL_FALSE, &ModelMatrix[0][0]);
+  glUniformMatrix4fv(viewMatrixId, 1, GL_FALSE, &ViewMatrix[0][0]);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
@@ -94,15 +108,15 @@ void const Model::render(const glm::mat4 &projectionMatrix,
 
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  glVertexAttribPointer(0,
-
-                        3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
   glEnableVertexAttribArray(1);
   glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
-  glVertexAttribPointer(1,
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
-                        2, GL_FLOAT, GL_FALSE, 0, (void *)0);
+  glEnableVertexAttribArray(2);
+  glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
   glDrawArrays(GL_TRIANGLES, 0, verticesCount);
 
