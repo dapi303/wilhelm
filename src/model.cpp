@@ -13,7 +13,7 @@ GLuint loadTexture(const std::string &path);
 
 Model::~Model() {
   glDeleteBuffers(1, &vertexBuffer);
-  glDeleteBuffers(1, &colorBuffer);
+  glDeleteBuffers(1, &uvBuffer);
   glDeleteVertexArrays(1, &vertexArrayId);
   glDeleteProgram(programId);
 }
@@ -40,9 +40,9 @@ void Model::load(const std::string &modelPath, const std::string &texturePath) {
   printf("uvs %zu\n", uvs.size());
   printf("normals %zu\n", normals.size());
 
-  glGenBuffers(1, &colorBuffer);
-  glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-  glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec3), &uvs[0],
+  glGenBuffers(1, &uvBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
+  glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0],
                GL_STATIC_DRAW);
   matrixId = glGetUniformLocation(programId, "MVP");
   modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
@@ -99,10 +99,10 @@ void const Model::render(const glm::mat4 &projectionMatrix,
                         3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
   glEnableVertexAttribArray(1);
-  glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
   glVertexAttribPointer(1,
 
-                        3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+                        2, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
   glDrawArrays(GL_TRIANGLES, 0, verticesCount);
 
