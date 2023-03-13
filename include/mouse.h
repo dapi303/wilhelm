@@ -12,6 +12,9 @@ struct MouseEvent {
   EventType type;
   double x;
   double y;
+  bool ctrl;
+
+  MouseEvent(GLFWwindow *window);
 };
 
 class Mouse {

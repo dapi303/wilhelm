@@ -6,6 +6,10 @@
 #include <mouse.h>
 #include <matrices.h>
 
+MouseEvent::MouseEvent(GLFWwindow *window) {
+  ctrl = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+}
+
 glm::vec2 translateFromPixelPosition(glm::vec2 pixelPosition) {
   GLint view[4];
   glGetIntegerv(GL_VIEWPORT, view);
@@ -53,7 +57,7 @@ void Mouse::scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
   void *data = glfwGetWindowUserPointer(window);
   Mouse *instance = static_cast<Mouse *>(data);
 
-  MouseEvent event;
+  MouseEvent event(window);
   event.type = SCROLL;
   event.x = xoffset;
   event.y = yoffset;
@@ -72,7 +76,11 @@ void Mouse::clickCallback(GLFWwindow *window, int button, int action,
   void *data = glfwGetWindowUserPointer(window);
   Mouse *instance = static_cast<Mouse *>(data);
   if (action == 0) {
-    instance->clicked = true;
+    MouseEvent event(window);
+    event.type = CLICK;
+    event.x = instance->mousePositionRawPx.x;
+    event.y = instance->mousePositionRawPx.y;
+    instance->events.push(event);
   }
 }
 

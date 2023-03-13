@@ -39,18 +39,22 @@ int main(void) {
 
   Mouse mouse(window.getInstance());
 
+  std::vector<glm::vec3> trees;
+
   do {
     fps.update();
 
-    if (mouse.clicked) {
-      mouse.clicked = false;
-      myPosition = mouse.getMouse3DPosition();
-      changeFocusPoint(myPosition);
-    }
     while (std::optional<MouseEvent> event = mouse.popEvent()) {
       if (event->type == SCROLL) {
         if (event->y != 0) {
           zoomCamera(event->y * 0.1f);
+        }
+      } else if (event->type == CLICK) {
+        if (event->ctrl) {
+          trees.push_back(mouse.getMouse3DPosition());
+        } else {
+          myPosition = mouse.getMouse3DPosition();
+          changeFocusPoint(myPosition);
         }
       }
     }
@@ -68,8 +72,12 @@ int main(void) {
     modelCube.render(projectionMatrix, viewMatrix, glm::vec3(1.0f, 0.0f, 1.0f),
                      glm::vec3(0.05f));
 
-    modelCube.render(projectionMatrix, viewMatrix, mouse.getMouse3DPosition(),
-                     glm::vec3(0.01f));
+    modelTree.render(projectionMatrix, viewMatrix, mouse.getMouse3DPosition(),
+                     glm::vec3(1.0f));
+
+    for (auto object : trees) {
+      modelTree.render(projectionMatrix, viewMatrix, object, glm::vec3(1.0f));
+    }
 
     hud.render();
 
